@@ -150,6 +150,11 @@ if [ ! -e "/usr/local/first_boot_flag" ]; then
     #     systemctl restart rkaiq_3A.service || true
     # fi
 
+    tr -d '\0' < /proc/device-tree/model | grep  "EA3576-DK" > /dev/null
+    if [ $? -eq 0 ]; then
+	    amixer -q -c 0 cset name='SAI1 Transmit SDO2 Source Select' 0
+	    alsactl store 0
+    fi
     touch /usr/local/first_boot_flag
 fi
 

@@ -20,6 +20,8 @@ fi
 # done
 
 sudo ./add-build-info.sh ${TARGET_ROOTFS_DIR}
+sudo mkdir ${TARGET_ROOTFS_DIR}/oem
+sudo mkdir ${TARGET_ROOTFS_DIR}/userdata
 
 # Apparent size + maxium alignment(file_count * block_size) + maxium journal size
 IMAGE_SIZE_MB=$(( $(sudo du --apparent-size -sm ${TARGET_ROOTFS_DIR} | cut -f1) + \

@@ -67,7 +67,7 @@ function add_build_info()
 		sed -i "/^BUILD_ID=/d" ${TARGET_DIR}/etc/os-release
 
 	echo "Adding build-info to /etc/os-release..."
-	echo "BUILD_INFO=\"$(whoami)@$(hostname) $(date)${@:+ - $@}\"" >> \
+	echo "BUILD_INFO=\"$(whoami)@pc $(date)${@:+ - $@}\"" >> \
 		${TARGET_DIR}/etc/os-release
 }
 

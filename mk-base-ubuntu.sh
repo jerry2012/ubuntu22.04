@@ -79,9 +79,9 @@ apt-get -y update
 apt-get -f -y upgrade
 
 if [ "$TARGET" == "gnome" ]; then
-   \${APT_INSTALL} ubuntu-desktop-minimal rsyslog sudo dialog apt-utils ntp evtest onboard
+   \${APT_INSTALL} ubuntu-desktop-minimal rsyslog sudo dialog apt-utils ntp evtest onboard xterm
 elif [ "$TARGET" == "xfce" ]; then
-    \${APT_INSTALL} xubuntu-core rsyslog sudo dialog apt-utils ntp evtest udev
+    \${APT_INSTALL} xubuntu-core rsyslog sudo dialog apt-utils ntp evtest udev onboard xterm
 elif [ "$TARGET" == "lite" ]; then
     \${APT_INSTALL} rsyslog sudo dialog apt-utils ntp evtest acpid
 elif [ "$TARGET" == "gnome-full" ]; then
@@ -140,16 +140,16 @@ fi
 
 pip3 install python-periphery Adafruit-Blinka -i https://mirrors.aliyun.com/pypi/simple/
 
-HOST=lubancat
+HOST=ea3576-dk
 
 # Create User
-useradd -G sudo -m -s /bin/bash cat
-passwd cat <<IEOF
-temppwd
-temppwd
+useradd -G sudo -m -s /bin/bash linaro
+passwd linaro <<IEOF
+linaro
+linaro
 IEOF
-gpasswd -a cat video
-gpasswd -a cat audio
+gpasswd -a linaro video
+gpasswd -a linaro audio
 passwd root <<IEOF
 root
 root
@@ -159,7 +159,7 @@ IEOF
 sed -i '/pam_securetty.so/s/^/# /g' /etc/pam.d/login
 
 # hostname
-echo lubancat > /etc/hostname
+echo ea3576-dk > /etc/hostname
 
 # set localtime
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

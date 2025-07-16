@@ -1,0 +1,7 @@
+#!/bin/sh
+kern_version=$(uname -rv)
+echo "KernelVersion: $kern_version"
+#cat /etc/version.brd
+BRD=`tr -d '\0' < /proc/device-tree/model | awk -F" " '{print $2 } '`
+sed "s/HardWare_ver : .*/HardWare_ver : ${BRD}/g" /etc/version.brd > /run/version.brd
+cat /run/version.brd

@@ -90,7 +90,8 @@ install_packages() {
         ;;
         rk3576)
         MALI=bifrost-g52-g13p0
-        MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
+        MALI_PKG=libmali-*$MALI*-x11-gbm*
+        [[ "$TARGET" =~ ^gnome(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
         ISP=rkaiq_rk3576
         ;;
         rk3588|rk3588s)
@@ -114,7 +115,7 @@ esac
 echo -e "\033[47;36m Building for $ARCH \033[0m"
 
 if [ ! $VERSION ]; then
-    VERSION="release"
+    VERSION="debug"
 fi
 
 echo -e "\033[47;36m Building for $VERSION \033[0m"
@@ -145,24 +146,27 @@ sudo cp -rpfv packages/$ARCH/libmali/$MALI_PKG.deb $TARGET_ROOTFS_DIR/packages/i
 sudo cp -rpfv packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
 
 #linux kernel deb
-if [ -e ../linux-headers* ]; then
-    Image_Deb=$(basename ../linux-headers*)
-    sudo mkdir -p $TARGET_ROOTFS_DIR/boot/kerneldeb
-    sudo touch $TARGET_ROOTFS_DIR/boot/build-host
-    sudo cp -vrpf ../${Image_Deb} $TARGET_ROOTFS_DIR/boot/kerneldeb
-    sudo cp -vrpf ../${Image_Deb/headers/image} $TARGET_ROOTFS_DIR/boot/kerneldeb
+if [ -e ./linux-headers* ]; then
+    Image_Deb=$(basename ./linux-headers*)
+    #sudo mkdir -p $TARGET_ROOTFS_DIR/boot/kerneldeb
+    #sudo touch $TARGET_ROOTFS_DIR/boot/build-host
+    sudo cp -vrpf ./${Image_Deb} $TARGET_ROOTFS_DIR/packages/install_packages
+    #sudo cp -vrpf ./${Image_Deb/headers/image} $TARGET_ROOTFS_DIR/boot/kerneldeb
 fi
 
 # overlay folder
-sudo cp -rpf overlay/* $TARGET_ROOTFS_DIR/
+sudo cp -rf overlay/* $TARGET_ROOTFS_DIR/
+if [[ "$SOC" == "rk3576" ]]; then
+	sudo sed 's/AllowSuspend=no/AllowSuspend=yes/g' -i $TARGET_ROOTFS_DIR/etc/systemd/sleep.conf.d/nosuspend.conf
+fi
 
 # overlay-firmware folder
-sudo cp -rpf overlay-firmware/* $TARGET_ROOTFS_DIR/
+sudo cp -rf overlay-firmware/* $TARGET_ROOTFS_DIR/
 
 # overlay-debug folder
 # adb, video, camera  test file
 if [ "$VERSION" == "debug" ]; then
-    sudo cp -rpf overlay-debug/* $TARGET_ROOTFS_DIR/
+    sudo cp -rf overlay-debug/* $TARGET_ROOTFS_DIR/
 fi
 
 ## hack the serial
@@ -189,15 +193,6 @@ for u in \$(ls /home/); do
     chown -h -R \$u:\$u /home/\$u
 done
 
-# Add embedfire packages source
-mkdir -p /etc/apt/keyrings
-curl -fsSL https://Embedfire.github.io/keyfile | gpg --dearmor -o /etc/apt/keyrings/embedfire.gpg
-chmod a+r /etc/apt/keyrings/embedfire.gpg
-echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian carp-lbc main" | tee /etc/apt/sources.list.d/embedfire-lbc.list > /dev/null
-if [ $MIRROR ]; then
-    echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/embedfire.gpg] https://cloud.embedfire.com/mirrors/ebf-debian $MIRROR main" | tee /etc/apt/sources.list.d/embedfire-$MIRROR.list > /dev/null
-fi
-
 export LC_ALL=C.UTF-8
 
 apt-get update
@@ -209,19 +204,17 @@ chmod +x /etc/rc.local
 export DEBIAN_FRONTEND=noninteractive
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
-echo -e "\033[47;36m ---------- LubanCat -------- \033[0m"
+echo -e "\033[47;36m ---------- ea3576-dk -------- \033[0m"
 apt purge initramfs-tools -y
 
-\${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate fire-config lbc-test
+\${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate
 if [[ "$TARGET" == "gnome" || "$TARGET" == "gnome-full" ]]; then
-    \${APT_INSTALL} gdisk fire-config-gui
+    \${APT_INSTALL} gdisk
     #Desktop background picture
-    ln -sf /usr/share/xfce4/backdrops/lubancat-wallpaper.png /usr/share/backgrounds/warty-final-ubuntu.png
 elif [[ "$TARGET" == "xfce" || "$TARGET" == "xfce-full" ]]; then
     \apt-get remove -y gnome-bluetooth
-    \${APT_INSTALL} bluez bluez-tools fire-config-gui
+    \${APT_INSTALL} bluez bluez-tools
     #Desktop background picture
-    ln -sf /usr/share/xfce4/backdrops/lubancat-wallpaper.png /usr/share/xfce4/backdrops/xubuntu-wallpaper.png
 elif [ "$TARGET" == "lite" ]; then
     \${APT_INSTALL} bluez bluez-tools
 fi
@@ -246,6 +239,9 @@ if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" 
     \${APT_INSTALL} /packages/mpp/*
     \${APT_INSTALL} /packages/gst-rkmpp/*.deb
     \${APT_INSTALL} /packages/gstreamer/*.deb
+    # \${APT_INSTALL} /packages/gst-plugins-base1.0/*.deb
+    # \${APT_INSTALL} /packages/gst-plugins-bad1.0/*.deb
+    # \${APT_INSTALL} /packages/gst-plugins-good1.0/*.deb
 elif [ "$TARGET" == "lite" ]; then
     echo -e "\033[47;36m ------ Setup Video---------- \033[0m"
     \${APT_INSTALL} /packages/mpp/*
@@ -265,9 +261,12 @@ fi
 if [[ "$TARGET" == "gnome" ||  "$TARGET" == "xfce" || "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ----- Install Camera ------- \033[0m"
     \${APT_INSTALL} cheese v4l-utils
+    # \${APT_INSTALL} /packages/libv4l/*.deb
+    # \${APT_INSTALL} /packages/cheese/*.deb
 
     echo -e "\033[47;36m ----- Wayland/Weston ------- \033[0m"
     \${APT_INSTALL} libseat-dev
+    # \${APT_INSTALL} /packages/weston/*.deb
     \${APT_INSTALL} /packages/wayland/*.deb
 
     # echo -e "\033[47;36m ------ Install openbox ----- \033[0m"
@@ -303,7 +302,7 @@ echo -e "\033[47;36m ----- Install rktoolkit ----- \033[0m"
 
 if [[ "$TARGET" == "gnome-full" || "$TARGET" == "xfce-full" ]]; then
     echo -e "\033[47;36m ------ Install scratch ------- \033[0m"
-    \${APT_INSTALL} /packages/embedfire/scratch_*.deb
+    #\${APT_INSTALL} /packages/embedfire/scratch_*.deb
 fi
 
 apt autoremove -y
@@ -343,6 +342,7 @@ rm -rf /var/cache/
 rm -rf /packages/
 rm -rf /boot/*
 rm -rf /root/.bash_history
+chmod go-w /lib/systemd/system/rkaiq_3A.service
 
 EOF
 
