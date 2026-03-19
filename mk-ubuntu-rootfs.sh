@@ -77,14 +77,15 @@ install_packages() {
         ;;
         rk3562)
         MALI=bifrost-g52-g13p0
-        MALI_PKG=libmali-*$MALI*-x11-gbm*
-        [[ "$TARGET" =~ ^gnome(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
+	MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
+	[[ "$TARGET" =~ xfce(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-gbm*
         ISP=rkaiq_rk3562
         MIRROR=carp-rk356x
         ;;
         rk356x|rk3566|rk3568)
         MALI=bifrost-g52-g13p0
         MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
+	[[ "$TARGET" =~ xfce(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-gbm*
         ISP=rkaiq_rk3568
         MIRROR=carp-rk356x
         ;;
@@ -97,6 +98,7 @@ install_packages() {
         rk3588|rk3588s)
         MALI=valhall-g610-g24p0
         MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
+	[[ "$TARGET" =~ xfce(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-gbm*
         ISP=rkaiq_rk3588
         MIRROR=carp-rk3588
         ;;
@@ -204,7 +206,7 @@ chmod +x /etc/rc.local
 export DEBIAN_FRONTEND=noninteractive
 export APT_INSTALL="apt-get install -fy --allow-downgrades"
 
-echo -e "\033[47;36m ---------- ea3576-dk -------- \033[0m"
+echo -e "\033[47;36m ---------- myarm64 -------- \033[0m"
 apt purge initramfs-tools -y
 
 \${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate fdisk
@@ -343,6 +345,8 @@ rm -rf /packages/
 rm -rf /boot/*
 rm -rf /root/.bash_history
 chmod go-w /lib/systemd/system/rkaiq_3A.service
+# hostname
+echo $SOC > /etc/hostname
 
 EOF
 

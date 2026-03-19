@@ -93,7 +93,7 @@ fi
 \${APT_INSTALL} net-tools openssh-server ifupdown alsa-utils network-manager gdb iputils-ping libssl-dev \
     vsftpd tcpdump can-utils i2c-tools strace vim iperf3 ethtool netplan.io toilet htop pciutils usbutils curl \
     whiptail gnupg bc xinput gdisk parted gcc sox libsox-fmt-all gpiod libgpiod-dev python3-pip python3-libgpiod \
-    guvcview u-boot-tools bash-completion
+    guvcview u-boot-tools bash-completion mbw
 
 \${APT_INSTALL} ttf-wqy-zenhei xfonts-intl-chinese
 
@@ -140,7 +140,6 @@ fi
 
 pip3 install python-periphery Adafruit-Blinka -i https://mirrors.aliyun.com/pypi/simple/
 
-HOST=ea3576-dk
 
 # Create User
 useradd -G sudo -m -s /bin/bash linaro
@@ -157,9 +156,6 @@ IEOF
 
 # allow root login
 sed -i '/pam_securetty.so/s/^/# /g' /etc/pam.d/login
-
-# hostname
-echo ea3576-dk > /etc/hostname
 
 # set localtime
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

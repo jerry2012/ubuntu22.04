@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 ### BEGIN INIT INFO
-# Provides:          LubanCat
+# Provides:          
 # Required-Start:
 # Required-Stop:
 # Default-Start:
