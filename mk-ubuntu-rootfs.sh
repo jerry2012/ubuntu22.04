@@ -97,6 +97,7 @@ install_packages() {
         ;;
         rk3588|rk3588s)
         MALI=valhall-g610-g24p0
+        MALI=valhall-g610-g13p0
         MALI_PKG=libmali-*$MALI*-x11-wayland-gbm*
 	[[ "$TARGET" =~ xfce(-full)?$ ]] && MALI_PKG=libmali-*$MALI*-x11-gbm*
         ISP=rkaiq_rk3588
@@ -148,11 +149,19 @@ sudo cp -rpfv packages/$ARCH/libmali/$MALI_PKG.deb $TARGET_ROOTFS_DIR/packages/i
 sudo cp -rpfv packages/$ARCH/${ISP:0:5}/camera_engine_$ISP*.deb $TARGET_ROOTFS_DIR/packages/install_packages
 
 #linux kernel deb
-if [ -e ./linux-headers* ]; then
-    Image_Deb=$(basename ./linux-headers*)
+if [ -e ./deb ]; then
+    if [[ "$SOC" == "rk3588" ]]; then
+            Image_Deb="linux-headers-5.10.160_5.10.160-1_arm64.deb linux-image-5.10.160_5.10.160-1_arm64.deb"
+    fi
+    if [[ "$SOC" == "rk3576" ]]; then
+	    Image_Deb="linux-headers-6.1-arm64_arm64.deb"
+    fi
     #sudo mkdir -p $TARGET_ROOTFS_DIR/boot/kerneldeb
     #sudo touch $TARGET_ROOTFS_DIR/boot/build-host
-    sudo cp -vrpf ./${Image_Deb} $TARGET_ROOTFS_DIR/packages/install_packages
+    #sudo cp -vrpf ./${Image_Deb} $TARGET_ROOTFS_DIR/packages/install_packages
+    for u in $Image_Deb; do
+	    sudo cp -vrpf ./deb/$u $TARGET_ROOTFS_DIR/packages/install_packages
+    done
     #sudo cp -vrpf ./${Image_Deb/headers/image} $TARGET_ROOTFS_DIR/boot/kerneldeb
 fi
 
@@ -209,7 +218,7 @@ export APT_INSTALL="apt-get install -fy --allow-downgrades"
 echo -e "\033[47;36m ---------- myarm64 -------- \033[0m"
 apt purge initramfs-tools -y
 
-\${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate fdisk usbmount
+\${APT_INSTALL} dialog toilet u-boot-tools edid-decode logrotate fdisk barrier blueman
 if [[ "$TARGET" == "gnome" || "$TARGET" == "gnome-full" ]]; then
     \${APT_INSTALL} gdisk
     #Desktop background picture

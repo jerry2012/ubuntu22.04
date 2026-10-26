@@ -1,0 +1,13 @@
+#!/bin/sh
+
+TMP=$(uname -rv)
+echo "KERNEL: $TMP"
+TMP=`tr -d '\0' < /proc/device-tree/model | awk -F" " '{print $2 } '`
+echo "SOC: $TMP"
+TMP=`tr -d '\0' < /proc/device-tree/model | awk -F" " '{print $3 } '`
+echo "HW: $TMP"
+#TMP=`getprop ro.rksdk.version`
+echo "SDK: 1.4.0"
+echo "ID: 5457"
+cat /etc/version.conf
+
